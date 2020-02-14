@@ -1,5 +1,6 @@
 package io.yaazhi.forwardsecrecy.dto;
 
+import io.micrometer.core.lang.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,13 +11,11 @@ import lombok.ToString;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SecretKeySpec{
-
+public class CipherResponse{
     @NonNull
-    String remotePublicKey;
-    @NonNull
-    String ourPrivateKey;
-    
-   // public SecretKeySpec() {}
+    String base64Data;
+    @Nullable
+    ErrorInfo errorInfo;
+   
 }
 

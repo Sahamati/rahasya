@@ -10,13 +10,18 @@ import lombok.ToString;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SecretKeySpec{
+public class CipherParameter{
 
     @NonNull
     String remotePublicKey;
     @NonNull
     String ourPrivateKey;
-    
-   // public SecretKeySpec() {}
+    @NonNull
+    String base64YourNonce;
+    @NonNull
+    String base64RemoteNonce;
+    @NonNull
+    String base64Data;
+   
 }
 

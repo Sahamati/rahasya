@@ -24,6 +24,7 @@ public class DHEService{
     @Value("${forwardsecrecy.dhe.provider:BC}")
     String provider;    
         
+
         public String getSharedSecret(PrivateKey ourPrivatekey, PublicKey remotePublicKey) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException {
             KeyAgreement ecdhKeyAgreement = KeyAgreement.getInstance(algorithm, provider);
             ecdhKeyAgreement.init(ourPrivatekey);
