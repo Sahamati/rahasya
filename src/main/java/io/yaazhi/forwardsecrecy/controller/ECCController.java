@@ -52,7 +52,7 @@ public class ECCController {
 
     @ApiOperation(value = "Generate a new ecc key pair")
     @GetMapping(value="/generateKey", produces = "application/json")
-    @ApiResponses({ @ApiResponse(code = 201, message = " successfully created"),
+    @ApiResponses({ @ApiResponse(code = 200, message = " successfully created"),
 			@ApiResponse(code = 400, message = " Request body passed  is null or invalid"),
 			@ApiResponse(code = 500, message = " Error occured") })
     public SerializedKeyPair generateKey() {
@@ -74,7 +74,7 @@ public class ECCController {
 
     @ApiOperation(value = "Generate the shared key for the given remote public key (other party in X509encoded Spec) and our private key (our private key encoded in PKCS#8 format) ")
     @PostMapping(value = "/getSharedKey", consumes = "application/json", produces = "application/json")
-    @ApiResponses({ @ApiResponse(code = 201, message = " successfully derived the key"),
+    @ApiResponses({ @ApiResponse(code = 200, message = " successfully derived the key"),
             @ApiResponse(code = 500, message = " error occured while deriving secret key") })
     public SerializedSecretKey getSharedKey(@RequestBody final SecretKeySpec spec) {
         try {
@@ -101,7 +101,7 @@ public class ECCController {
 
     @ApiOperation(value = "Encrypt the data for the given remote public key (other party in X509encoded Spec) and our private key (our private key encoded in PKCS#8 format) , remote nonce (base64) and local nonce (base64). Send the input data as a base64 string. Encryption happens after decoding the base64")
     @PostMapping(value = "/encrypt", consumes = "application/json", produces = "application/json")
-    @ApiResponses({ @ApiResponse(code = 201, message = " successfully encrypted the data"),
+    @ApiResponses({ @ApiResponse(code = 200, message = " successfully encrypted the data"),
 			@ApiResponse(code = 500, message = " error occured while encrypting the given data") })
     public CipherResponse encrypt(@RequestBody final CipherParameter cipherParam) {
         try {
@@ -130,7 +130,7 @@ public class ECCController {
     
     @ApiOperation(value = "Decrypt the data for the given remote public key (other party in X509encoded Spec) and our private key (our private key encoded in PKCS#8 format) , remote nonce (base64) and local nonce (base64). The result is base64 encoded")
     @PostMapping(value = "/decrypt", consumes = "application/json", produces = "application/json")
-    @ApiResponses({ @ApiResponse(code = 201, message = " successfully encrypted the data"),
+    @ApiResponses({ @ApiResponse(code = 200, message = " successfully encrypted the data"),
 			@ApiResponse(code = 500, message = " error occured while encrypting the given data") })
     public CipherResponse decrypt(@RequestBody final CipherParameter cipherParam) {
         try {
