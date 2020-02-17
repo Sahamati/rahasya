@@ -22,7 +22,7 @@ class ForwardSecrecyApplicationTests {
 	ECCController eccController;
 
 	@BeforeAll
-	public void beforeAll(){
+	public static void beforeAll(){
 		Security.addProvider(new BouncyCastleProvider()); 
 	}
 	@Test

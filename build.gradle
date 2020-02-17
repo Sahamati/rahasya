@@ -42,13 +42,9 @@ dependencies {
 	
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-		compileOnly group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.64' 
+		compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.64' 
 	}
-}
-
-task setupRuntime (type: Copy){
-        from(configurations.runtime)
-        into("build/libs")
+	
 }
 
 test {
