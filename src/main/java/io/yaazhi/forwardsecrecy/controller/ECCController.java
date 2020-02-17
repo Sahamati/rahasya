@@ -2,6 +2,7 @@ package io.yaazhi.forwardsecrecy.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Date;
 import java.util.logging.Level;
 
 import javax.crypto.BadPaddingException;
@@ -14,6 +15,7 @@ import io.swagger.annotations.ApiResponses;
 import io.yaazhi.forwardsecrecy.dto.CipherParameter;
 import io.yaazhi.forwardsecrecy.dto.CipherResponse;
 import io.yaazhi.forwardsecrecy.dto.ErrorInfo;
+import io.yaazhi.forwardsecrecy.dto.KeyMaterial;
 import io.yaazhi.forwardsecrecy.dto.SecretKeySpec;
 import io.yaazhi.forwardsecrecy.dto.SerializedKeyPair;
 import io.yaazhi.forwardsecrecy.dto.SerializedSecretKey;
@@ -30,6 +32,9 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -62,7 +67,7 @@ public class ECCController {
         }
         catch( NoSuchProviderException | NoSuchAlgorithmException | InvalidAlgorithmParameterException ex){
             log.log(Level.SEVERE, "Unable to generateKey");
-            final SerializedKeyPair errorKeyPair = new SerializedKeyPair("", "");
+            final SerializedKeyPair errorKeyPair = new SerializedKeyPair("", new KeyMaterial());
             final ErrorInfo error = new ErrorInfo();
             error.setErrorCode(ex.getClass().getName());
             error.setErrorMessage(ex.getMessage());
@@ -99,7 +104,7 @@ public class ECCController {
 
     }
 
-    @ApiOperation(value = "Encrypt the data for the given remote public key (other party in X509encoded Spec) and our private key (our private key encoded in PKCS#8 format) , remote nonce (base64) and local nonce (base64). Send the input data as a base64 string. Encryption happens after decoding the base64")
+    @ApiOperation(value = "Encrypt the data for the given key material (other party in X509encoded Spec) and our private key (our private key encoded in PKCS#8 format) , remote nonce (base64) and local nonce (base64). Send the input data as a base64 string. Encryption happens after decoding the base64")
     @PostMapping(value = "/encrypt", consumes = "application/json", produces = "application/json")
     @ApiResponses({ @ApiResponse(code = 200, message = " successfully encrypted the data"),
 			@ApiResponse(code = 500, message = " error occured while encrypting the given data") })
@@ -109,14 +114,26 @@ public class ECCController {
             log.log(Level.FINE, "Get PrivateKey");
             final Key ourPrivateKey = eccService.getPEMDecodedStream(cipherParam.getOurPrivateKey());
             log.log(Level.FINE, "Get PublicKey");
-            final Key ourPublicKey = eccService.getPEMDecodedStream(cipherParam.getRemotePublicKey());
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"); // Quoted "Z" to indicate UTC, no 
+            Date expiryDate;
+            try {
+                expiryDate = df.parse(cipherParam.getRemoteKeyMaterial().getDhPublicKey().getExpiry());
+            }
+            catch(ParseException ex){
+                throw new InvalidKeyException("Unable to parse date");
+            }
+            
+            if (!expiryDate.after(new Date())){
+                throw new InvalidKeyException("Expired Key");
+            }
+            final Key ourPublicKey = eccService.getPEMDecodedStream(cipherParam.getRemoteKeyMaterial().getDhPublicKey().getKeyValue());
             log.log(Level.FINE, "Initiate Encryption");
             String result= cipherService.encrypt((PrivateKey) ourPrivateKey, (PublicKey) ourPublicKey, cipherParam.getBase64YourNonce(), cipherParam.getBase64RemoteNonce(), cipherParam.getBase64Data());
             log.log(Level.FINE, "Completed Encryption");
             return new CipherResponse(result, null);
 
         } catch (NoSuchProviderException | NoSuchAlgorithmException | InvalidKeyException
-                | InvalidKeySpecException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException ex) {
+                | InvalidKeySpecException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException  ex) {
 
             log.log(Level.SEVERE, "Error during encryption");
             final ErrorInfo error = new ErrorInfo();
@@ -138,8 +155,20 @@ public class ECCController {
             log.log(Level.FINE, "Get PrivateKey");
             final Key ourPrivateKey = eccService.getPEMDecodedStream(cipherParam.getOurPrivateKey());
             log.log(Level.FINE, "Get PublicKey");
-            final Key ourPublicKey = eccService.getPEMDecodedStream(cipherParam.getRemotePublicKey());
-            log.log(Level.FINE, "Initiate Encryption");
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"); // Quoted "Z" to indicate UTC, no 
+            Date expiryDate;
+            try {
+                expiryDate = df.parse(cipherParam.getRemoteKeyMaterial().getDhPublicKey().getExpiry());
+            }
+            catch(ParseException ex){
+                throw new InvalidKeyException("Unable to parse date");
+            }
+            
+            if (!expiryDate.after(new Date())){
+                throw new InvalidKeyException("Expired Key");
+            }
+            final Key ourPublicKey = eccService.getPEMDecodedStream(cipherParam.getRemoteKeyMaterial().getDhPublicKey().getKeyValue());
+            log.log(Level.FINE, "Initiate Decryption");
             String result= cipherService.decrypt((PrivateKey) ourPrivateKey, (PublicKey) ourPublicKey, cipherParam.getBase64YourNonce(), cipherParam.getBase64RemoteNonce(), cipherParam.getBase64Data());
             log.log(Level.FINE, "Completed Decryption");
             return new CipherResponse(result, null);

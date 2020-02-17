@@ -2,7 +2,6 @@ package io.yaazhi.forwardsecrecy.service;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
@@ -12,9 +11,7 @@ import java.util.Base64;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyAgreement;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -25,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.logging.Level;
 import lombok.extern.java.Log;
 
 @Log
@@ -50,7 +46,7 @@ public class CipherService {
             String base64RemoteNonce, String base64EncodedData)
             throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException,
             InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
-
+        log.info("Attempt to encrypt");
         //derive the secret key
         String sharedSecret = dheService.getSharedSecret(ourPrivatekey, remotePublicKey);
         //Xor the nonce 
@@ -76,6 +72,7 @@ public class CipherService {
             throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException,
             InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
 
+        log.info("Attempt to decrypt");
         String sharedSecret = dheService.getSharedSecret(ourPrivatekey, remotePublicKey);
         byte[] xoredNonce = xor(Base64.getDecoder().decode(base64YourNonce), Base64.getDecoder().decode(base64RemoteNonce));
         String key = getSessionKey(Base64.getDecoder().decode(sharedSecret), xoredNonce);

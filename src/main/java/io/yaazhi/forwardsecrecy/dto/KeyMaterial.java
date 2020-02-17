@@ -1,5 +1,7 @@
 package io.yaazhi.forwardsecrecy.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,18 +12,14 @@ import lombok.ToString;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CipherParameter{
-
+public class KeyMaterial{
     @NonNull
-    KeyMaterial remoteKeyMaterial;
+    String cryptoAlg;
     @NonNull
-    String ourPrivateKey;
+    String curve;
     @NonNull
-    String base64YourNonce;
+    String params;
     @NonNull
-    String base64RemoteNonce;
-    @NonNull
-    String base64Data;
-   
+    @JsonProperty("DHPublicKey")
+    DHPublicKey dhPublicKey;
 }
-
