@@ -14,8 +14,7 @@ https://hub.docker.com/r/gsasikumar/forwardsecrecy/tags
 
 ## How to build
 1. ./gradlew build
-2. ./gradlew setupRuntime
-3. docker build -t gsasikumar/forwardsecrecy:v1 .
+2. docker build -t gsasikumar/forwardsecrecy:v1 .
 
 ## How to run docker
 1. docker run -p 8080:8080 gsasikumar/forwardsecrecy:v1
