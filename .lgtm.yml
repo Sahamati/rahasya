@@ -11,4 +11,4 @@ extraction:
       properties_files: true
       xml_mode: disabled
 queries:
-  - include "*"
+  - include: "*"
