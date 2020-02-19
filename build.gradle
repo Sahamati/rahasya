@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'io.yaazhi'
-version = '0.0.2-SNAPSHOT'
+version = '0.1.1-SNAPSHOT'
 sourceCompatibility = '1.8'
 
 configurations {
@@ -20,8 +20,8 @@ configurations {
 }
 
 jar {
-    baseName = 'forwardsecrecy'
-    version =  '0.1.1'
+    archiveBaseName = 'forwardsecrecy'
+    archiveVersion =  '0.1.1'
 }
 
 repositories {
@@ -31,18 +31,18 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compile 'io.springfox:springfox-swagger2:2.9.2'
-	compile 'io.springfox:springfox-swagger-ui:2.9.2'
-	compile 'org.springframework.boot:spring-boot-starter-actuator'
-	compile 'io.micrometer:micrometer-registry-prometheus'
+	implementation 'io.springfox:springfox-swagger2:2.9.2'
+	implementation 'io.springfox:springfox-swagger-ui:2.9.2'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 	
-	runtime group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.64'
+	runtimeOnly group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.64'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
 	
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-		compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.64' 
+		implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.64' 
 	}
 	
 }

@@ -104,7 +104,7 @@ public class ECCController {
 
     }
 
-    @ApiOperation(value = "Encrypt the data for the given key material (other party in X509encoded Spec) and our private key (our private key encoded in PKCS#8 format) , remote nonce (base64) and local nonce (base64). Send the input data as a base64 string. Encryption happens after decoding the base64")
+    @ApiOperation(value = "Encrypt the data for the given key material (other party in X509encoded Spec) and our private key (our private key encoded in PKCS#8 format) , remote nonce (base64) and local nonce (base64). Send the input data as a string. Encryption assumes the given data is a string")
     @PostMapping(value = "/encrypt", consumes = "application/json", produces = "application/json")
     @ApiResponses({ @ApiResponse(code = 200, message = " successfully encrypted the data"),
 			@ApiResponse(code = 500, message = " error occured while encrypting the given data") })

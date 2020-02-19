@@ -43,7 +43,7 @@ public class CipherService {
     final int saltIVOffset = 20;
 
     public String encrypt(PrivateKey ourPrivatekey, PublicKey remotePublicKey, String base64YourNonce,
-            String base64RemoteNonce, String base64EncodedData)
+            String base64RemoteNonce, String data)
             throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException,
             InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
         log.info("Attempt to encrypt");
@@ -62,7 +62,7 @@ public class CipherService {
         System.arraycopy(xoredNonce, saltIVOffset, iv, 0, ivLength);
         GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(gcmTagLength * 8, iv);
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, gcmParameterSpec);
-        byte[] cipherData = cipher.doFinal(Base64.getDecoder().decode(base64EncodedData));
+        byte[] cipherData = cipher.doFinal(data.getBytes());
 
         return Base64.getEncoder().encodeToString(cipherData);
     }

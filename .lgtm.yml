@@ -1,0 +1,14 @@
+path_classifiers:
+  test:
+    - "**/test/**/*.java"
+extraction:
+  java:
+    index:
+      gradle:
+        version: 6.2
+      build_command: ./gradlew clean build
+      java_version: 11
+      properties_files: true
+      xml_mode: disabled
+queries:
+  - include "*"
