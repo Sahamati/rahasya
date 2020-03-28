@@ -8,16 +8,14 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Base64;
 
+import io.yaazhi.forwardsecrecy.dto.*;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import io.yaazhi.forwardsecrecy.controller.ECCController;
-import io.yaazhi.forwardsecrecy.dto.CipherParameter;
-import io.yaazhi.forwardsecrecy.dto.CipherResponse;
-import io.yaazhi.forwardsecrecy.dto.SerializedKeyPair;
 
 @SpringBootTest
 class ECCControllerTest {
@@ -75,4 +73,28 @@ class ECCControllerTest {
 
     }
 
+    @Test
+    public void testValidateTheSecretKeyGeneratedOnClientAndServerIsSimilar()  {
+        //Generate server key pair
+        final SerializedKeyPair serverKeyPair = eccController.generateKey();
+        String serverPublicKey = serverKeyPair.getKeyMaterials().getDhPublicKey().getKeyValue();
+        String serverPrivateKey = serverKeyPair.getPrivateKey();
+
+        //Generate remote key pair
+        final SerializedKeyPair clientKeyPair = eccController.generateKey();
+        String clientPublicKey = clientKeyPair.getKeyMaterials().getDhPublicKey().getKeyValue();
+        String clientPrivateKey = clientKeyPair.getPrivateKey();
+
+        //Happening on Server
+        SecretKeySpec spec = new SecretKeySpec(clientPublicKey, serverPrivateKey);
+        SerializedSecretKey serverSideKey = eccController.getSharedKey(spec);
+        System.out.println("The key that is generated on server side is ["+serverSideKey.getKey());
+
+        //Happening on Client
+        SecretKeySpec mobileSpec = new SecretKeySpec(serverPublicKey, clientPrivateKey);
+        SerializedSecretKey clientSideKey = eccController.getSharedKey(mobileSpec);
+        System.out.println("The key that is generated on client side is ["+clientSideKey.getKey());
+
+        Assertions.assertEquals(serverSideKey.getKey(),clientSideKey.getKey());
+    }
 }
