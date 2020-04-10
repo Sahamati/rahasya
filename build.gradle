@@ -44,9 +44,11 @@ dependencies {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 		implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.64' 
 	}
-	
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 }
 
 test {
 	useJUnitPlatform()
+	//testLogging.showStandardStreams = true
 }
