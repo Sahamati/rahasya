@@ -26,9 +26,21 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Cache Gradle packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+      
       - name: Run build tests
         run: 
           ./gradlew build
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: forwardsecrecy.jar
+          path: build/libs
           
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/
@@ -41,7 +53,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
+      - uses: actions/download-artifact@v1
+        with:
+          name: forwardsecrecy.jar
+          path: build/libs
+    
       - name: Build image
         run: docker build . --file Dockerfile --tag image
 
