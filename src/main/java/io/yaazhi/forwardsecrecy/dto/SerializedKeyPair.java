@@ -14,8 +14,8 @@ public class SerializedKeyPair{
     @NonNull
     final private String privateKey;
     @NonNull
-    @JsonProperty("KeyMaterials")
-    KeyMaterial keyMaterials;
+    @JsonProperty("KeyMaterial")
+    KeyMaterial keyMaterial;
     @Nullable
     ErrorInfo errorInfo;
 }
