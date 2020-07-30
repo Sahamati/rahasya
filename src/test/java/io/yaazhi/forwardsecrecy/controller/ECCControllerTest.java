@@ -57,7 +57,7 @@ class ECCControllerTest {
         encryptCipherParam.setBase64RemoteNonce(Base64.getEncoder().encodeToString(remoteNonce));
         encryptCipherParam.setBase64YourNonce(Base64.getEncoder().encodeToString(ourNonce));
         encryptCipherParam.setOurPrivateKey(ourSerializedKeyPair.getPrivateKey());
-        encryptCipherParam.setRemoteKeyMaterial(remoteSerializedKeyPair.getKeyMaterials());
+        encryptCipherParam.setRemoteKeyMaterial(remoteSerializedKeyPair.getKeyMaterial());
         CipherResponse encryptedCipherResponse = eccController.encrypt(encryptCipherParam);
         
         //Remote Decryption
@@ -67,7 +67,7 @@ class ECCControllerTest {
         decryptCipherParam.setBase64RemoteNonce(Base64.getEncoder().encodeToString(ourNonce));
         decryptCipherParam.setBase64YourNonce(Base64.getEncoder().encodeToString(remoteNonce));
         decryptCipherParam.setOurPrivateKey(remoteSerializedKeyPair.getPrivateKey());
-        decryptCipherParam.setRemoteKeyMaterial(ourSerializedKeyPair.getKeyMaterials());
+        decryptCipherParam.setRemoteKeyMaterial(ourSerializedKeyPair.getKeyMaterial());
         
         CipherResponse decryptedCipherResponse = eccController.decrypt(decryptCipherParam);
         //System.out.println(decryptedCipherResponse.getBase64Data());
@@ -79,12 +79,12 @@ class ECCControllerTest {
     public void testValidateTheSecretKeyGeneratedOnClientAndServerIsSimilar()  {
         //Generate server key pair
         final SerializedKeyPair serverKeyPair = eccController.generateKey();
-        String serverPublicKey = serverKeyPair.getKeyMaterials().getDhPublicKey().getKeyValue();
+        String serverPublicKey = serverKeyPair.getKeyMaterial().getDhPublicKey().getKeyValue();
         String serverPrivateKey = serverKeyPair.getPrivateKey();
 
         //Generate remote key pair
         final SerializedKeyPair clientKeyPair = eccController.generateKey();
-        String clientPublicKey = clientKeyPair.getKeyMaterials().getDhPublicKey().getKeyValue();
+        String clientPublicKey = clientKeyPair.getKeyMaterial().getDhPublicKey().getKeyValue();
         String clientPrivateKey = clientKeyPair.getPrivateKey();
 
         //Happening on Server
