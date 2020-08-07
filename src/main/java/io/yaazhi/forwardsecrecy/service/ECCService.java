@@ -34,7 +34,7 @@ import lombok.extern.java.Log;
 @Log
 @Service
 public class ECCService {
-    @Value("${forwardsecrecy.ecc.curve:curve25519}")
+    @Value("${forwardsecrecy.ecc.curve:Curve25519}")
     String curve;
     @Value("${forwardsecrecy.ecc.algorithm:EC}")
     String algorithm;
