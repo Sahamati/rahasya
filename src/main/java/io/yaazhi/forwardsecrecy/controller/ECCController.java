@@ -12,7 +12,8 @@ import javax.crypto.NoSuchPaddingException;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import io.yaazhi.forwardsecrecy.dto.CipherParameter;
+import io.yaazhi.forwardsecrecy.dto.EncryptCipherParameter;
+import io.yaazhi.forwardsecrecy.dto.DecryptCipherParameter;
 import io.yaazhi.forwardsecrecy.dto.CipherResponse;
 import io.yaazhi.forwardsecrecy.dto.ErrorInfo;
 import io.yaazhi.forwardsecrecy.dto.KeyMaterial;
@@ -108,16 +109,16 @@ public class ECCController {
     @PostMapping(value = "/encrypt", consumes = "application/json", produces = "application/json")
     @ApiResponses({ @ApiResponse(code = 200, message = " successfully encrypted the data"),
 			@ApiResponse(code = 500, message = " error occured while encrypting the given data") })
-    public CipherResponse encrypt(@RequestBody final CipherParameter cipherParam) {
+    public CipherResponse encrypt(@RequestBody final EncryptCipherParameter encryptCipherParam) {
         try {
             log.info("Encrypt complete data");
             log.log(Level.FINE, "Get PrivateKey");
-            final Key ourPrivateKey = eccService.getPEMDecodedStream(cipherParam.getOurPrivateKey());
+            final Key ourPrivateKey = eccService.getPEMDecodedStream(encryptCipherParam.getOurPrivateKey());
             log.log(Level.FINE, "Get PublicKey");
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"); // Quoted "Z" to indicate UTC, no 
             Date expiryDate;
             try {
-                expiryDate = df.parse(cipherParam.getRemoteKeyMaterial().getDhPublicKey().getExpiry());
+                expiryDate = df.parse(encryptCipherParam.getRemoteKeyMaterial().getDhPublicKey().getExpiry());
             }
             catch(ParseException ex){
                 throw new InvalidKeyException("Unable to parse date");
@@ -126,9 +127,9 @@ public class ECCController {
             if (!expiryDate.after(new Date())){
                 throw new InvalidKeyException("Expired Key");
             }
-            final Key ourPublicKey = eccService.getPEMDecodedStream(cipherParam.getRemoteKeyMaterial().getDhPublicKey().getKeyValue());
+            final Key ourPublicKey = eccService.getPEMDecodedStream(encryptCipherParam.getRemoteKeyMaterial().getDhPublicKey().getKeyValue());
             log.log(Level.FINE, "Initiate Encryption");
-            String result= cipherService.encrypt((PrivateKey) ourPrivateKey, (PublicKey) ourPublicKey, cipherParam.getBase64YourNonce(), cipherParam.getBase64RemoteNonce(), cipherParam.getBase64Data());
+            String result= cipherService.encrypt((PrivateKey) ourPrivateKey, (PublicKey) ourPublicKey, encryptCipherParam.getBase64YourNonce(), encryptCipherParam.getBase64RemoteNonce(), encryptCipherParam.getData());
             log.log(Level.FINE, "Completed Encryption");
             return new CipherResponse(result, null);
 
@@ -149,16 +150,16 @@ public class ECCController {
     @PostMapping(value = "/decrypt", consumes = "application/json", produces = "application/json")
     @ApiResponses({ @ApiResponse(code = 200, message = " successfully encrypted the data"),
 			@ApiResponse(code = 500, message = " error occured while encrypting the given data") })
-    public CipherResponse decrypt(@RequestBody final CipherParameter cipherParam) {
+    public CipherResponse decrypt(@RequestBody final DecryptCipherParameter decryptCipherParam) {
         try {
             log.info("Decrypt complete data");
             log.log(Level.FINE, "Get PrivateKey");
-            final Key ourPrivateKey = eccService.getPEMDecodedStream(cipherParam.getOurPrivateKey());
+            final Key ourPrivateKey = eccService.getPEMDecodedStream(decryptCipherParam.getOurPrivateKey());
             log.log(Level.FINE, "Get PublicKey");
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"); // Quoted "Z" to indicate UTC, no 
             Date expiryDate;
             try {
-                expiryDate = df.parse(cipherParam.getRemoteKeyMaterial().getDhPublicKey().getExpiry());
+                expiryDate = df.parse(decryptCipherParam.getRemoteKeyMaterial().getDhPublicKey().getExpiry());
             }
             catch(ParseException ex){
                 throw new InvalidKeyException("Unable to parse date");
@@ -167,9 +168,9 @@ public class ECCController {
             if (!expiryDate.after(new Date())){
                 throw new InvalidKeyException("Expired Key");
             }
-            final Key ourPublicKey = eccService.getPEMDecodedStream(cipherParam.getRemoteKeyMaterial().getDhPublicKey().getKeyValue());
+            final Key ourPublicKey = eccService.getPEMDecodedStream(decryptCipherParam.getRemoteKeyMaterial().getDhPublicKey().getKeyValue());
             log.log(Level.FINE, "Initiate Decryption");
-            String result= cipherService.decrypt((PrivateKey) ourPrivateKey, (PublicKey) ourPublicKey, cipherParam.getBase64YourNonce(), cipherParam.getBase64RemoteNonce(), cipherParam.getBase64Data());
+            String result= cipherService.decrypt((PrivateKey) ourPrivateKey, (PublicKey) ourPublicKey, decryptCipherParam.getBase64YourNonce(), decryptCipherParam.getBase64RemoteNonce(), decryptCipherParam.getBase64Data());
             log.log(Level.FINE, "Completed Decryption");
             return new CipherResponse(result, null);
 

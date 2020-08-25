@@ -52,8 +52,8 @@ class ECCControllerTest {
         //Your Encryption
         sr.nextBytes(ourNonce);
         sr.nextBytes(remoteNonce);
-        CipherParameter encryptCipherParam = new CipherParameter();
-        encryptCipherParam.setBase64Data(base64Data);
+        EncryptCipherParameter encryptCipherParam = new EncryptCipherParameter();
+        encryptCipherParam.setData(base64Data);
         encryptCipherParam.setBase64RemoteNonce(Base64.getEncoder().encodeToString(remoteNonce));
         encryptCipherParam.setBase64YourNonce(Base64.getEncoder().encodeToString(ourNonce));
         encryptCipherParam.setOurPrivateKey(ourSerializedKeyPair.getPrivateKey());
@@ -62,7 +62,7 @@ class ECCControllerTest {
         
         //Remote Decryption
         
-        CipherParameter decryptCipherParam = new CipherParameter();
+        DecryptCipherParameter decryptCipherParam = new DecryptCipherParameter();
         decryptCipherParam.setBase64Data(encryptedCipherResponse.getBase64Data());
         decryptCipherParam.setBase64RemoteNonce(Base64.getEncoder().encodeToString(ourNonce));
         decryptCipherParam.setBase64YourNonce(Base64.getEncoder().encodeToString(remoteNonce));

@@ -10,7 +10,7 @@ import lombok.ToString;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CipherParameter{
+public class EncryptCipherParameter{
 
     @NonNull
     KeyMaterial remoteKeyMaterial;
@@ -21,7 +21,7 @@ public class CipherParameter{
     @NonNull
     String base64RemoteNonce;
     @NonNull
-    String base64Data;
+    String data;
    
 }
 
