@@ -17,8 +17,8 @@ public class DHPublicKey{
     String expiry;
     //Dont ask me why this is capital. I am just blindly following the spec ;)
     @NonNull
-    @JsonProperty("Parameter")
-    String parameter;
+    @JsonProperty("Parameters")
+    String parameters;
     @NonNull
     @JsonProperty("KeyValue")
     String keyValue;
