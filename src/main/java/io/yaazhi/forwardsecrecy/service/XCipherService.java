@@ -50,7 +50,7 @@ public class XCipherService {
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", provider);
         //Create the spec with the given session key
         SecretKeySpec keySpec = new SecretKeySpec(Base64.getDecoder().decode(key), "AES");
-        byte[] iv = new byte[12];
+        byte[] iv = new byte[ivLength];
         //Copy only the last 12 bytes
         System.arraycopy(xoredNonce, saltIVOffset, iv, 0, ivLength);
         GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(gcmTagLength * 8, iv);
@@ -71,7 +71,7 @@ public class XCipherService {
         String key = getSessionKey(Base64.getDecoder().decode(sharedSecret), xoredNonce);
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", provider);
         SecretKeySpec keySpec = new SecretKeySpec(Base64.getDecoder().decode(key), "AES");
-        byte[] iv = new byte[12];
+        byte[] iv = new byte[ivLength];
         System.arraycopy(xoredNonce, saltIVOffset, iv, 0, ivLength);
         GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(gcmTagLength * 8, iv);
         cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmParameterSpec);
