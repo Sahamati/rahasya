@@ -1,5 +1,7 @@
 # Forwardsecrecy
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3085a92bbc14442cbd57de61a358f841)](https://app.codacy.com/gh/Sahamati/rahasya?utm_source=github.com&utm_medium=referral&utm_content=Sahamati/rahasya&utm_campaign=Badge_Grade_Settings)
+
 The project aims to simplify the usage of ECC curve (curve25519) with Diffie-Hellman Key exchange.  
 The work is inline with the Account Aggregator Specification.
 
