@@ -13,7 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import io.yaazhi.forwardsecrecy.controller.ECCController;
 
 /*
-TODO: have to add the test cases here
+Test cases
 */
 @SpringBootTest
 class ForwardSecrecyApplicationTests {

@@ -3,24 +3,43 @@ package io.yaazhi.forwardsecrecy.service;
 import io.yaazhi.forwardsecrecy.dto.DHPublicKey;
 import io.yaazhi.forwardsecrecy.dto.KeyMaterial;
 import io.yaazhi.forwardsecrecy.dto.SerializedKeyPair;
-import lombok.extern.java.Log;
+
+import org.bouncycastle.crypto.params.X25519PrivateKeyParameters;
+import org.bouncycastle.crypto.params.X25519PublicKeyParameters;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.bouncycastle.math.ec.rfc7748.X25519;
+import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.security.spec.InvalidKeySpecException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.Key;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.KeyPair;
+import java.security.KeyFactory;
+import java.security.KeyPairGenerator;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.KeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.security.*;
-import java.security.spec.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.logging.Level;
+import java.util.Calendar;
+import java.util.Base64;
+import java.util.TimeZone;
+import java.util.Date;
 
-@Log
 @Service
 public class X25519Service {
     @Value("${forwardsecrecy.ecc.algorithm:X25519}")
@@ -29,7 +48,6 @@ public class X25519Service {
     String provider;
     @Value("${forwardsecrecy.ecc.keyExpiryDays:30}")
     int keyExpiry;
-    private SecureRandom random = new SecureRandom();
 
 
     private KeyPair generateKey()
@@ -84,5 +102,80 @@ public class X25519Service {
             return KeyFactory.getInstance(algorithm, provider).generatePublic(keySpec);
         }
     }
+
+    /**
+     * Gets the shared secret for X25119 
+     * @param ourPrivateKey
+     * @param ourPublicKey
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     * @throws InvalidKeyException
+     * @throws NoSuchProviderException
+     * @throws IOException
+     */
+    public String getSharedSecret(String ourPrivateKey, String ourPublicKey) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchProviderException, IOException {
+        final byte[] publicKey = getPublicKeyBytes(ourPublicKey);
+        final byte[] privateKey = getPrivateKeyBytes(ourPrivateKey);
+        return this.getSharedSecret(privateKey, publicKey);
+    }
+
+    /***
+     * Get shared secret with the private and public key object.
+     * @param ourPrivateKey
+     * @param ourPublicKey
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     * @throws InvalidKeyException
+     * @throws NoSuchProviderException
+     * @throws IOException
+     */
+    public String getSharedSecret(PrivateKey ourPrivateKey, PublicKey ourPublicKey) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchProviderException, IOException {
+        final byte[] publicKey = getPublicKeyBytes(ourPublicKey);
+        final byte[] privateKey = getPrivateKeyBytes(ourPrivateKey);
+        return this.getSharedSecret(privateKey, publicKey);
+    }
+
+    private byte[] getPrivateKeyBytes(String privatekey) 
+            throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, IOException{
+        if(privatekey.length() == 64){ //the key is 32 bytes so 64 bytes when hex encoded.
+            return Hex.decode(privatekey);
+        }
+        //Else we will assume its a PEM encoded
+        final Key ourPrivateKey = this.getPEMDecodedStream(privatekey, true);
+        return getPrivateKeyBytes((PrivateKey) ourPrivateKey);
+    }
+
+    private byte[] getPrivateKeyBytes(PrivateKey privatekey) throws IOException{
+        X25519PrivateKeyParameters x25519PrivateKeyParameters = (X25519PrivateKeyParameters) PrivateKeyFactory.createKey(privatekey.getEncoded());
+        return x25519PrivateKeyParameters.getEncoded();
+    }
+
+    private byte[] getPublicKeyBytes(String publicKey) 
+            throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, IOException{
+        if(publicKey.length() == 64){ //the key is 32 bytes so 64 bytes when hex encoded.
+            return Hex.decode(publicKey);
+        }
+        //Else we will assume its a PEM encoded
+        final Key ourPublicKey = this.getPEMDecodedStream(publicKey, false);
+        return getPublicKeyBytes((PublicKey) ourPublicKey);
+    }
+
+    private byte[] getPublicKeyBytes(PublicKey publicKey) 
+            throws IOException {
+        X25519PublicKeyParameters x25519PublicKeyParameters = (X25519PublicKeyParameters) PublicKeyFactory.createKey(publicKey.getEncoded());
+        return x25519PublicKeyParameters.getEncoded();
+    }
+
+    private String getSharedSecret(byte[] ourPrivatekey, byte[] remotePublicKey) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException, IOException {
+        byte[] secretKey = new byte[X25519.POINT_SIZE];
+        if(remotePublicKey.length != 32 || ourPrivatekey.length != 32) {
+            //the key is 32 bytes so 64 bytes when hex encoded.
+            throw new InvalidKeyException();
+        }
+        X25519.scalarMult(ourPrivatekey, 0, remotePublicKey, 0, secretKey, 0);
+        return Base64.getEncoder().encodeToString(secretKey);
+    } 
 
 }

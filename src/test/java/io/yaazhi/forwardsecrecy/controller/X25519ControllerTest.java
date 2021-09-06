@@ -1,7 +1,9 @@
 package io.yaazhi.forwardsecrecy.controller;
 
 import io.yaazhi.forwardsecrecy.dto.*;
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.encoders.Hex;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -12,7 +14,10 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Base64;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+//import static org.junit.jupiter.api.Assertions.*;
 
 
 @SpringBootTest
@@ -40,8 +45,6 @@ class X25519ControllerTest {
         assertNull(remoteSerializedKeyPair.getErrorInfo());
         assertNotNull(remoteSerializedKeyPair.getPrivateKey());
 
-
-        //   String base64Data = "TGV0IHVzIHRlc3QgdG8gZW5zdXJlIHdlIGFyZSBhbGwgZG9pbmcgYSBnb29kIGpvYi4gSG9wZSBpdHMgYWxsIHRydWUgdGhhdCB3ZSBhcmUgZG9pbmcgZ29vZC4gTGV0IHVzIHRlc3QgdG8gZW5zdXJlIHdlIGFyZSBhbGwgZG9pbmcgYSBnb29kIGpvYi4gSG9wZSBpdHMgYWxsIHRydWUgdGhhdCB3ZSBhcmUgZG9pbmcgZ29vZC4gTGV0IHVzIHRlc3QgdG8gZW5zdXJlIHdlIGFyZSBhbGwgZG9pbmcgYSBnb29kIGpvYi4gSG9wZSBpdHMgYWxsIHRydWUgdGhhdCB3ZSBhcmUgZG9pbmcgZ29vZC4gTGV0IHVzIHRlc3QgdG8gZW5zdXJlIHdlIGFyZSBhbGwgZG9pbmcgYSBnb29kIGpvYi4gSG9wZSBpdHMgYWxsIHRydWUgdGhhdCB3ZSBhcmUgZG9pbmcgZ29vZC4gTGV0IHVzIHRlc3QgdG8gZW5zdXJlIHdlIGFyZSBhbGwgZG9pbmcgYSBnb29kIGpvYi4gSG9wZSBpdHMgYWxsIHRydWUgdGhhdCB3ZSBhcmUgZG9pbmcgZ29vZC4gTGV0IHVzIHRlc3QgdG8gZW5zdXJlIHdlIGFyZSBhbGwgZG9pbmcgYSBnb29kIGpvYi4gSG9wZSBpdHMgYWxsIHRydWUgdGhhdCB3ZSBhcmUgZG9pbmcgZ29vZC4gTGV0IHVzIHRlc3QgdG8gZW5zdXJlIHdlIGFyZSBhbGwgZG9pbmcgYSBnb29kIGpvYi4gSG9wZSBpdHMgYWxsIHRydWUgdGhhdCB3ZSBhcmUgZG9pbmcgZ29vZC4gTGV0IHVzIHRlc3QgdG8gZW5zdXJlIHdlIGFyZSBhbGwgZG9pbmcgYSBnb29kIGpvYi4gSG9wZSBpdHMgYWxsIHRydWUgdGhhdCB3ZSBhcmUgZG9pbmcgZ29vZC4gTGV0IHVzIHRlc3QgdG8gZW5zdXJlIHdlIGFyZSBhbGwgZG9pbmcgYSBnb29kIGpvYi4gSG9wZSBpdHMgYWxsIHRydWUgdGhhdCB3ZSBhcmUgZG9pbmcgZ29vZC4gTGV0IHVzIHRlc3QgdG8gZW5zdXJlIHdlIGFyZSBhbGwgZG9pbmcgYSBnb29kIGpvYi4gSG9wZSBpdHMgYWxsIHRydWUgdGhhdCB3ZSBhcmUgZG9pbmcgZ29vZC4gTGV0IHVzIHRlc3QgdG8gZW5zdXJlIHdlIGFyZSBhbGwgZG9pbmcgYSBnb29kIGpvYi4gSG9wZSBpdHMgYWxsIHRydWUgdGhhdCB3ZSBhcmUgZG9pbmcgZ29vZC4g";
         String base64Data = "Let us test to ensure we are all doing a good job. Hope its all true that we are doing good. Let us test to ensure we are all doing a good job. Hope its all true that we are doing good. Let us test to ensure we are all doing a good job. Hope its all true that we are doing good. Let us test to ensure we are all doing a good job. Hope its all true that we are doing good. Let us test to ensure we are all doing a good job. Hope its all true that we are doing good. Let us test to ensure we are all doing a good job. Hope its all true that we are doing good. Let us test to ensure we are all doing a good job. Hope its all true that we are doing good. Let us test to ensure we are all doing a good job. Hope its all true that we are doing good. Let us test to ensure we are all doing a good job. Hope its all true that we are doing good. Let us test to ensure we are all doing a good job. Hope its all true that we are doing good. Let us test to ensure we are all doing a good job. Hope its all true that we are doing good. ";
         SecureRandom sr = new SecureRandom();
         byte ourNonce[] = new byte[32];
@@ -79,12 +82,11 @@ class X25519ControllerTest {
         final SerializedKeyPair serverKeyPair = x25519Controller.generateKey();
         String serverPublicKey = serverKeyPair.getKeyMaterial().getDhPublicKey().getKeyValue();
         String serverPrivateKey = serverKeyPair.getPrivateKey();
-
+        System.out.println("Server public key" + serverPublicKey);
         //Generate remote key pair
         final SerializedKeyPair clientKeyPair = x25519Controller.generateKey();
         String clientPublicKey = clientKeyPair.getKeyMaterial().getDhPublicKey().getKeyValue();
         String clientPrivateKey = clientKeyPair.getPrivateKey();
-
         //Happening on Server
         SecretKeySpec spec = new SecretKeySpec(clientPublicKey, serverPrivateKey);
         SerializedSecretKey serverSideKey = x25519Controller.getSharedKey(spec);
@@ -99,4 +101,14 @@ class X25519ControllerTest {
     }
 
 
+    @Test
+    public void testValidateTheSecretKeyGeneratedAsPerRFC7748()  throws Exception{
+        String testPrivateKey = "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a";
+        String peerPublicKey = "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f";
+        SecretKeySpec spec = new SecretKeySpec(peerPublicKey, testPrivateKey);
+        SerializedSecretKey serializedSecretKey = x25519Controller.getSharedKey(spec);
+        byte [] secretKey = Base64.getDecoder().decode(serializedSecretKey.getKey());
+        System.out.println("Secret Key " + Hex.toHexString(secretKey));
+        Assertions.assertEquals(Hex.toHexString(secretKey) ,"4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742");
+    }
 }

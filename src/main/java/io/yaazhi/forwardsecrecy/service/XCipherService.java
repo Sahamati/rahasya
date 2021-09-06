@@ -8,13 +8,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.*;
 import java.util.Base64;
 
 @Log
@@ -26,7 +33,7 @@ public class XCipherService {
     @Value("${forwardsecrecy.cipher.provider:BC}")
     String provider;
     @Autowired
-    XExchangeService dheService;
+    X25519Service dheService;
     // 16 bytes is the size of the gcmtag
     final int gcmTagLength = 16;
     // Length of the IV
@@ -37,7 +44,7 @@ public class XCipherService {
 
     public String encrypt(PrivateKey ourPrivatekey, PublicKey remotePublicKey, String base64YourNonce,
             String base64RemoteNonce, String data)
-            throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException,
+            throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeySpecException, IOException, 
             InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
         log.info("Attempt to encrypt");
         //derive the secret key
@@ -46,7 +53,7 @@ public class XCipherService {
         byte[] xoredNonce = xor(Base64.getDecoder().decode(base64YourNonce), Base64.getDecoder().decode(base64RemoteNonce));
         //create a session key with the derived secret
         String key = getSessionKey(Base64.getDecoder().decode(sharedSecret), xoredNonce);
-        // Crease the cipher instance with the neessary encryption algorithm
+        // Crease the cipher instance with the necessary encryption algorithm
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", provider);
         //Create the spec with the given session key
         SecretKeySpec keySpec = new SecretKeySpec(Base64.getDecoder().decode(key), "AES");
@@ -62,7 +69,7 @@ public class XCipherService {
 
     public String decrypt(PrivateKey ourPrivatekey, PublicKey remotePublicKey, String base64YourNonce,
             String base64RemoteNonce, String base64EncodedData)
-            throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException,
+            throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeySpecException, IOException, 
             InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
 
         log.info("Attempt to decrypt");

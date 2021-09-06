@@ -21,7 +21,7 @@ configurations {
 
 jar {
     archiveBaseName = 'forwardsecrecy'
-    archiveVersion =  '0.1.1'
+    archiveVersion =  '0.1.2'
 }
 
 repositories {

@@ -4,20 +4,28 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.yaazhi.forwardsecrecy.dto.*;
-import io.yaazhi.forwardsecrecy.service.CipherService;
 import io.yaazhi.forwardsecrecy.service.X25519Service;
 import io.yaazhi.forwardsecrecy.service.XCipherService;
-import io.yaazhi.forwardsecrecy.service.XExchangeService;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
-import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.Key;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -32,8 +40,7 @@ public class X25519Controller {
 
     @Autowired
     private X25519Service x25519Service;
-    @Autowired
-    private XExchangeService xExchangeService;
+
     @Autowired
     private XCipherService cipherService;
 
@@ -41,7 +48,7 @@ public class X25519Controller {
     @GetMapping(value="/generateKey", produces = "application/json")
     @ApiResponses({ @ApiResponse(code = 200, message = " successfully created"),
 			@ApiResponse(code = 400, message = " Request body passed  is null or invalid"),
-			@ApiResponse(code = 500, message = " Error occured") })
+			@ApiResponse(code = 500, message = " Error occurred") })
     public SerializedKeyPair generateKey() {
         try {
             log.info("Generate Key");
@@ -59,19 +66,14 @@ public class X25519Controller {
 
     }
 
-    @ApiOperation(value = "Generate the shared key for the given remote public key (other party in X509encoded Spec) and our private key (our private key encoded in PKCS#8 format) ")
+    @ApiOperation(value = "Generate the shared key for the given remote public key (other party in X509encoded Spec) and our private key (our private key encoded in PKCS#8 format). The keys can also be in plain hex encoded as in lib sodium. The api will auto detect the same")
     @PostMapping(value = "/getSharedKey", consumes = "application/json", produces = "application/json")
     @ApiResponses({ @ApiResponse(code = 200, message = " successfully derived the key"),
-            @ApiResponse(code = 500, message = " error occured while deriving secret key") })
+            @ApiResponse(code = 500, message = " error occurred while deriving secret key") })
     public SerializedSecretKey getSharedKey(@RequestBody final SecretKeySpec spec) {
         try {
             log.info("Generate Shared Secret");
-            log.log(Level.FINE, "Get PrivateKey");
-            final Key ourPrivateKey = x25519Service.getPEMDecodedStream(spec.getOurPrivateKey(), true);
-            log.log(Level.FINE, "Get PublicKey");
-            final Key ourPublicKey = x25519Service.getPEMDecodedStream(spec.getRemotePublicKey(), false);
-            log.log(Level.FINE, "Got the key decoded. Lets generate secret key");
-            final String secretKey = xExchangeService.getSharedSecret((PrivateKey) ourPrivateKey, (PublicKey) ourPublicKey);
+            final String secretKey = x25519Service.getSharedSecret(spec.getOurPrivateKey(), spec.getRemotePublicKey());
             return new SerializedSecretKey(secretKey);
         } catch (NoSuchProviderException | NoSuchAlgorithmException | InvalidKeyException | IOException
                 | InvalidKeySpecException ex) {
@@ -89,7 +91,7 @@ public class X25519Controller {
     @ApiOperation(value = "Encrypt the data for the given key material (other party in X509encoded Spec) and our private key (our private key encoded in PKCS#8 format) , remote nonce (base64) and local nonce (base64). Send the input data as a string. Encryption assumes the given data is a string")
     @PostMapping(value = "/encrypt", consumes = "application/json", produces = "application/json")
     @ApiResponses({ @ApiResponse(code = 200, message = " successfully encrypted the data"),
-			@ApiResponse(code = 500, message = " error occured while encrypting the given data") })
+			@ApiResponse(code = 500, message = " error occurred while encrypting the given data") })
     public CipherResponse encrypt(@RequestBody final EncryptCipherParameter encryptCipherParam) {
         try {
             log.info("Encrypt complete data");
@@ -131,7 +133,7 @@ public class X25519Controller {
     @ApiOperation(value = "Decrypt the data for the given remote public key (other party in X509encoded Spec) and our private key (our private key encoded in PKCS#8 format) , remote nonce (base64) and local nonce (base64). The result is base64 encoded")
     @PostMapping(value = "/decrypt", consumes = "application/json", produces = "application/json")
     @ApiResponses({ @ApiResponse(code = 200, message = " successfully encrypted the data"),
-			@ApiResponse(code = 500, message = " error occured while encrypting the given data") })
+			@ApiResponse(code = 500, message = " error occurred while encrypting the given data") })
     public CipherResponse decrypt(@RequestBody final DecryptCipherParameter decryptCipherParam) {
         try {
             log.info("Decrypt complete data");
