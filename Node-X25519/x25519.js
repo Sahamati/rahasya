@@ -143,6 +143,10 @@ const peerPublicKeyBuffer = getPublicKeyFromHex(peerPublicKey);
 
 const secret = crypto.diffieHellman({privateKey: ourPrivateKeyObject, publicKey: peerPublicKeyBuffer});
 
+/**
+ * Note: This method could have potential performance bottle neck as the key derivation happens 
+ * in sync mode. It would good if any one can test it for performance.
+ */
 const sharedSecret = getSessionKey(secret, getXOR(base64YourNonce, base64RemoteNonce));
 
 /**
