@@ -31,70 +31,129 @@ SOFTWARE.
 
 const  crypto  = require('crypto');
 
-/* Convert the given x25519 base64encoded raw key to der format */
+/***
+ * XOR the given two values
+ */
 
-function getDER(base64EncodedKey) {
-  const key = Buffer.from(base64EncodedKey, 'base64')
- 
-  // X25519's OID 
-  const oid = Buffer.from([0x06, 0x03, 0x2B, 0x65, 0x6E])
+function getXOR(base64Value1, base64Value2){
 
-  // Create a byte sequence containing the OID and key
-  return Buffer.concat([
-    Buffer.concat([
-      Buffer.from([0x30, 0x2A, 0x30]), // Sequence tag
-      Buffer.from([oid.length]),
-      oid,
-    ]),
-    Buffer.concat([
-      Buffer.from([0x03]), // Bit tag
-      Buffer.from([key.length + 1]),
-      Buffer.from([0x00]), // Zero bit
-      key,
-    ]),
-  ])
+  const value1 = Buffer.from(base64Value1, 'base64');
+  const value2 = Buffer.from(base64Value2, 'base64');
+  let outBuf = Buffer.alloc(value1.length);
 
+  for (let n = 0; n < value1.length; n++)
+    outBuf[n] = value1[n] ^ value2[n % value2.length];
+  
+  return outBuf;
 }
-
 
 /***
- * Convert a der encoded key into the raw base64 format.
- * Note: This is a crude way of convertion works only for x25519
-*/
+ * Create the session key using the secret and xoredNonce
+ * 
+ * secret - byte array
+ * xoredNonce - byte array
+ * 
+ * returns base64encoded key
+ */
 
-function getRaw(derEncodedBufferKey) {
-  return derEncodedBufferKey.slice(derEncodedBufferKey.length-32,derEncodedBufferKey.length).toString('base64');
+function getSessionKey(secret, xoredNonce) {
+
+  const salt = xoredNonce.slice(0,20);
+  return Buffer.from(crypto.hkdfSync('sha256', secret, salt, '', 32)).toString('base64');
 }
-
 
 /**
  * Generate key pair for x25519 
  * 
  **/
-const x25519Keys = crypto.generateKeyPairSync('x25519', { publicKeyEncoding: {
-    type: 'spki',
-    format: 'der'
-  },
-  privateKeyEncoding: {
-    type: 'pkcs8',
-    format: 'pem',
-    cipher: 'aes-256-cbc',
-    passphrase: 'top secret'
-  }
-});
+
+function generateKeyPair(password){
+    const x25519Keys = crypto.generateKeyPairSync('x25519', { publicKeyEncoding: {
+      type: 'spki',
+      format: 'der'
+    },
+    privateKeyEncoding: {
+      type: 'pkcs8',
+      format: 'pem',
+      cipher: 'aes-256-cbc',
+      passphrase: password
+    }
+  });
+  return x25519Keys;
+}
+
+
+
+
+/***
+ * Convert the hex private key to jwk encoded key
+ */
+
+function getPrivateKeyFromHex(x25519Hex, x25519PublicHex){
+  const privateKey = crypto.createPrivateKey({
+    key: {
+      kty: "OKP",
+      crv: "X25519",
+      x: Buffer.from(x25519PublicHex, "hex").toString("base64url"),
+      d: Buffer.from(x25519Hex, "hex").toString("base64url"),
+    },
+    format: "jwk"
+  })
+  return privateKey;
+}
+
+
+/***
+ * Convert the hex public key to der encoded key
+ */
+
+ function getPublicKeyFromHex(x25519PublicHex){
+  const publicKey = crypto.createPublicKey({
+    key: {
+      kty: "OKP",
+      crv: "X25519",
+      x: Buffer.from(x25519PublicHex,"hex").toString("base64url")
+    },
+    format: "jwk"
+  });
+
+  return publicKey;
+}
 
 /**
- * Peer public key 
- **/
+ * 
+ * Here is the sample that shows how to take advantage of the above function. 
+ */
 
-const peerPublicKey = "/re98S+QQonKxutHTNsnfX3qbSjZrsiqZ/drbeLbhis=";
+const peerPublicKey = "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f";
+const base64RemoteNonce = 'WY9hFnr4WLFd9mVvItMIdBjFygVDpPpoi/BZ3Z3lBfY=';
+const base64YourNonce = '2OZz6xYAnS6a83WcOZFLQH/0YVcl1vWE+zespfGAWFo=';
 
-const ourPrivateKeyObject = crypto.createPrivateKey({ key: x25519Keys.privateKey , passphrase: 'top secret'});
-const peerPublicKeyBuffer = crypto.createPublicKey({ key: getDER(peerPublicKey), format: 'der', type: 'spki' });
+/**
+ * Often you may want to load this key from a pem file or auto generate it using a cache. 
+ * So feel free to use the logic thats necessary. 
+ * generateKeyPair this method will create a key for you when you are in need.
+ */
+const ourPrivateKey = "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a";
+const ourPublicKey = "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a";
+
+const ourPrivateKeyObject = getPrivateKeyFromHex(ourPrivateKey, ourPublicKey);
+const peerPublicKeyBuffer = getPublicKeyFromHex(peerPublicKey);
+
 
 const secret = crypto.diffieHellman({privateKey: ourPrivateKeyObject, publicKey: peerPublicKeyBuffer});
 
-console.log("Secret Key in hex format: " + secret.toString('hex'));
-console.log("My Public Key " + getRaw(x25519Keys.publicKey));
-console.log("Peer Public Key " + getRaw(peerPublicKeyBuffer.export({type:'spki',format:'der'})));
+const sharedSecret = getSessionKey(secret, getXOR(base64YourNonce, base64RemoteNonce));
 
+/**
+ * The keys used or samples from the RFC. So the shared secret key should be 
+ * 4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742
+ */
+console.log("Secret Key in hex format: " + secret.toString('hex'));
+
+/**
+ * For the given xor value the session key should be 
+ * 3b434ed3f93ce5ef1115a89955a50c0fa3ef09f449a842fed3bf81c2939f4261
+ */
+
+console.log("Shared session key in hex: " + Buffer.from(sharedSecret,'base64').toString('hex') ); 
