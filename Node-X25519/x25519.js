@@ -29,7 +29,7 @@ SOFTWARE.
   * */
 
 
-const  crypto  = require('crypto');
+const  crypto  = require("crypto");
 
 /***
  * XOR the given two values
@@ -37,8 +37,8 @@ const  crypto  = require('crypto');
 
 function getXOR(base64Value1, base64Value2){
 
-  const value1 = Buffer.from(base64Value1, 'base64');
-  const value2 = Buffer.from(base64Value2, 'base64');
+  const value1 = Buffer.from(base64Value1, "base64");
+  const value2 = Buffer.from(base64Value2, "base64");
   let outBuf = Buffer.alloc(value1.length);
 
   for (let n = 0; n < value1.length; n++)
@@ -59,7 +59,7 @@ function getXOR(base64Value1, base64Value2){
 function getSessionKey(secret, xoredNonce) {
 
   const salt = xoredNonce.slice(0,20);
-  return Buffer.from(crypto.hkdfSync('sha256', secret, salt, '', 32)).toString('base64');
+  return Buffer.from(crypto.hkdfSync("sha256", secret, salt, "", 32)).toString("base64");
 }
 
 /**
@@ -68,14 +68,14 @@ function getSessionKey(secret, xoredNonce) {
  **/
 
 function generateKeyPair(password){
-    const x25519Keys = crypto.generateKeyPairSync('x25519', { publicKeyEncoding: {
-      type: 'spki',
-      format: 'der'
+    const x25519Keys = crypto.generateKeyPairSync("x25519", { publicKeyEncoding: {
+      type: "spki",
+      format: "der"
     },
     privateKeyEncoding: {
-      type: 'pkcs8',
-      format: 'pem',
-      cipher: 'aes-256-cbc',
+      type: "pkcs8",
+      format: "pem",
+      cipher: "aes-256-cbc",
       passphrase: password
     }
   });
@@ -126,8 +126,8 @@ function getPrivateKeyFromHex(x25519Hex, x25519PublicHex){
  */
 
 const peerPublicKey = "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f";
-const base64RemoteNonce = 'WY9hFnr4WLFd9mVvItMIdBjFygVDpPpoi/BZ3Z3lBfY=';
-const base64YourNonce = '2OZz6xYAnS6a83WcOZFLQH/0YVcl1vWE+zespfGAWFo=';
+const base64RemoteNonce = "WY9hFnr4WLFd9mVvItMIdBjFygVDpPpoi/BZ3Z3lBfY=";
+const base64YourNonce = "2OZz6xYAnS6a83WcOZFLQH/0YVcl1vWE+zespfGAWFo=";
 
 /**
  * Often you may want to load this key from a pem file or auto generate it using a cache. 
@@ -153,11 +153,11 @@ const sharedSecret = getSessionKey(secret, getXOR(base64YourNonce, base64RemoteN
  * The keys used or samples from the RFC. So the shared secret key should be 
  * 4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742
  */
-console.log("Secret Key in hex format: " + secret.toString('hex'));
+console.log("Secret Key in hex format: " + secret.toString("hex"));
 
 /**
  * For the given xor value the session key should be 
  * 3b434ed3f93ce5ef1115a89955a50c0fa3ef09f449a842fed3bf81c2939f4261
  */
 
-console.log("Shared session key in hex: " + Buffer.from(sharedSecret,'base64').toString('hex') ); 
+console.log("Shared session key in hex: " + Buffer.from(sharedSecret,"base64").toString("hex") ); 
