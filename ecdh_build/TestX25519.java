@@ -1,5 +1,3 @@
-package test;
-
 import java.util.Date;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -22,7 +20,7 @@ import rahasya_ecdh_encryption.EncryptCipherParameter;
 import rahasya_ecdh_encryption.CipherResponse;
 import rahasya_ecdh_encryption.DecryptCipherParameter;
 
-class Main {
+class X25519Main {
 
     static X25519Controller x25519Controller = new X25519Controller();
 
