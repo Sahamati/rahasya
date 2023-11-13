@@ -25,9 +25,7 @@ RUN /usr/lib/jvm/zulu11/bin/jlink \
     --output "$JAVA_MINIMAL"
 
 # Second stage, add only our minimal "JRE" distr and our app
-FROM alpine
-
-RUN apk add python3
+FROM gcr.io/distroless/java11-debian11
 
 ENV JAVA_MINIMAL=/opt/jre
 ENV PATH="$PATH:$JAVA_MINIMAL/bin"
