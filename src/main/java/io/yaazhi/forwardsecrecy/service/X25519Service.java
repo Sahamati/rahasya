@@ -3,7 +3,6 @@ package io.yaazhi.forwardsecrecy.service;
 import io.yaazhi.forwardsecrecy.dto.DHPublicKey;
 import io.yaazhi.forwardsecrecy.dto.KeyMaterial;
 import io.yaazhi.forwardsecrecy.dto.SerializedKeyPair;
-
 import org.bouncycastle.crypto.params.X25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.X25519PublicKeyParameters;
 import org.bouncycastle.crypto.util.PrivateKeyFactory;
@@ -11,34 +10,23 @@ import org.bouncycastle.crypto.util.PublicKeyFactory;
 import org.bouncycastle.math.ec.rfc7748.X25519;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.security.spec.InvalidKeySpecException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.Key;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.KeyPair;
-import java.security.KeyFactory;
-import java.security.KeyPairGenerator;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.KeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.StringWriter;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Base64;
-import java.util.TimeZone;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 @Service
 public class X25519Service {
@@ -91,15 +79,22 @@ public class X25519Service {
 
     public Key getPEMDecodedStream(final String pemEncodedKey, boolean privateKey)
             throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, IOException {
-        StringReader reader = new StringReader(pemEncodedKey);
-        PemReader pemReader = new PemReader(reader);
+        String encodedKey = pemEncodedKey
+                .replaceAll("-----BEGIN PRIVATE KEY-----", "")
+                .replaceAll("-----END PRIVATE KEY-----", "")
+                .replaceAll("-----BEGIN PUBLIC KEY-----", "")
+                .replaceAll("-----END PUBLIC KEY-----", "")
+                .replaceAll("\n", "");
+
+        final byte[] pkcs8EncodedKey = Base64.getDecoder().decode(encodedKey);
+        KeyFactory factory = KeyFactory.getInstance(algorithm, provider);
+
         if(privateKey) {
-            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(pemReader.readPemObject().getContent());
-            return KeyFactory.getInstance(algorithm, provider).generatePrivate(spec);
-        }
-        else {
-            KeySpec keySpec = new X509EncodedKeySpec(pemReader.readPemObject().getContent());
-            return KeyFactory.getInstance(algorithm, provider).generatePublic(keySpec);
+            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(pkcs8EncodedKey);
+            return factory.generatePrivate(spec);
+        } else {
+            KeySpec keySpec = new X509EncodedKeySpec(pkcs8EncodedKey);
+            return factory.generatePublic(keySpec);
         }
     }
 
