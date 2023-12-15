@@ -84,6 +84,7 @@ public class X25519Service {
                 .replaceAll("-----END PRIVATE KEY-----", "")
                 .replaceAll("-----BEGIN PUBLIC KEY-----", "")
                 .replaceAll("-----END PUBLIC KEY-----", "")
+                .replaceAll("\r", "")
                 .replaceAll("\n", "");
 
         final byte[] pkcs8EncodedKey = Base64.getDecoder().decode(encodedKey);
