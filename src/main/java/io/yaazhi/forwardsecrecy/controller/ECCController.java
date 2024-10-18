@@ -43,6 +43,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.Instant;
+import java.util.Date;
+
 
 @Log
 @RestController
@@ -115,14 +122,8 @@ public class ECCController {
             log.log(Level.FINE, "Get PrivateKey");
             final Key ourPrivateKey = eccService.getPEMDecodedStream(encryptCipherParam.getOurPrivateKey());
             log.log(Level.FINE, "Get PublicKey");
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"); // Quoted "Z" to indicate UTC, no 
-            Date expiryDate;
-            try {
-                expiryDate = df.parse(encryptCipherParam.getRemoteKeyMaterial().getDhPublicKey().getExpiry());
-            }
-            catch(ParseException ex){
-                throw new InvalidKeyException("Unable to parse date");
-            }
+            // DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"); // Quoted "Z" to indicate UTC, no 
+            Date expiryDate = getExpiryDate(encryptCipherParam.getRemoteKeyMaterial().getDhPublicKey().getExpiry());
             
             if (!expiryDate.after(new Date())){
                 throw new InvalidKeyException("Expired Key");
@@ -143,6 +144,26 @@ public class ECCController {
             return new CipherResponse("", error);
         }
         
+    }
+
+    private Date getExpiryDate(String dateString) throws InvalidKeyException {
+        try {
+            // Try parsing with ISO_DATE_TIME first
+            ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, DateTimeFormatter.ISO_DATE_TIME);
+            Instant instant = zonedDateTime.toInstant();
+            log.info("The expiry format is ISO_DATE_TIME");
+            return Date.from(instant);
+        } catch (DateTimeParseException e1) {
+            try {
+                // If ISO_DATE_TIME fails, try parsing with ISO_OFFSET_DATE_TIME
+                OffsetDateTime offsetDateTime = OffsetDateTime.parse(dateString, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                Instant instant = offsetDateTime.toInstant();
+                log.info("The expiry format is ISO_OFFSET_DATE_TIME");
+                return Date.from(instant);
+            } catch (DateTimeParseException e2) {
+                throw new InvalidKeyException("Unable to parse expiry date");
+            }
+        }
     }
     
     
