@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk-alpine:11 as packager
+FROM --platform=linux/arm64 azul/zulu-openjdk-alpine:11 as packager
 LABEL maintainer="gsasikumar@github"
 
 
@@ -25,7 +25,7 @@ RUN /usr/lib/jvm/zulu11/bin/jlink \
     --output "$JAVA_MINIMAL"
 
 # Second stage, add only our minimal "JRE" distr and our app
-FROM gcr.io/distroless/java11-debian11
+FROM --platform=linux/arm64 gcr.io/distroless/java11-debian11
 
 ENV JAVA_MINIMAL=/opt/jre
 ENV PATH="$PATH:$JAVA_MINIMAL/bin"
